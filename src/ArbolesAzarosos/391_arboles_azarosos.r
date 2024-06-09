@@ -170,6 +170,9 @@ for( icorrida in seq(nrow(PARAM$corridas)) ){
     cat(arbolito, " ")
   }
 }
+final <- Sys.time()
+tiempo_demora <- final-inicio
+tiempo_demora
 
 # Bajo de Kaggle la ganancia de los ultimos 50 submits 
 l1 <- "#!/bin/bash\n"
