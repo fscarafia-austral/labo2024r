@@ -21,10 +21,10 @@ PARAM$experimento <- 3910
 # cambiar aqui por SUS corridas 
 #  segun lo que indica la  Planilla Colaborativa
 PARAM$corridas <- data.table( 
-  "cp" = rep(-1, 49),
-  "minsplit" = rep(c(50, 100, 250, 500, 500, 1000, 1000), each = 7),
-  "minbucket" = rep(c(20, 20, 10, 5, 50, 5, 50), each = 7),
-  "maxdepth" = rep(c(8, 6, 6, 10, 10, 8, 8), each = 7)
+  "cp" = c(-0.77493),
+  "minsplit" = c(936),
+  "minbucket" = c(467),
+  "maxdepth" = c(20)
 )
 
 # parametros  arbol
@@ -47,6 +47,7 @@ setwd("~/buckets/b1/") # Establezco el Working Directory
 # cargo MI semilla, que esta en MI bucket
 tabla_semillas <- fread( "./datasets//mis_semillas.txt" )
 ksemilla_azar <- tabla_semillas[ 1, semilla ]  # 1 es mi primer semilla
+print(ksemilla_azar)
 
 # cargo los datos
 dataset <- fread("./datasets/dataset_pequeno.csv")
@@ -148,7 +149,7 @@ for( icorrida in seq(nrow(PARAM$corridas)) ){
       l1 <- "#!/bin/bash \n"
       l2 <- "source ~/.venv/bin/activate  \n"
 
-      l3 <- paste0( "kaggle competitions submit   -c itba-data-mining-2024-cohorteb ")
+      l3 <- paste0( "kaggle competitions submit   -c labo-i-2024-rosario ")
       l3 <- paste0( l3, " -f ", nom_arch_kaggle )
       l3 <- paste0( l3,  " -m ",  "\"", "exp=", PARAM$experimento,  " , ")
       l3 <- paste0( l3,  "arbolitos=", arbolito, ", ")
@@ -177,7 +178,7 @@ tiempo_demora
 # Bajo de Kaggle la ganancia de los ultimos 50 submits 
 l1 <- "#!/bin/bash\n"
 l2 <- "source ~/.venv/bin/activate  \n"
-l3 <- "kaggle competitions submissions -c itba-data-mining-2024-cohorteb  -v > Kaggle_Public.csv \n"
+l3 <- "kaggle competitions submissions -c labo-i-2024-rosario  -v > Kaggle_Public.csv \n"
 l4 <- "deactivate \n"
 cat( paste0( l1, l2, l3, l4 ) , file = "bajar.sh" )
 Sys.chmod( "bajar.sh", mode = "744", use_umask = TRUE)
