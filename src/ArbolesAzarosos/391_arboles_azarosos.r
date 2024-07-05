@@ -21,10 +21,10 @@ PARAM$experimento <- 3910
 # cambiar aqui por SUS corridas 
 #  segun lo que indica la  Planilla Colaborativa
 PARAM$corridas <- data.table( 
-  "cp" = c( -1, -1, -1, -1, -1, -1),
-  "minsplit" = c( 50, 100, 250, 500, 1000, 1000),
-  "minbucket" = c( 20, 50, 50, 20, 5, 50),
-  "maxdepth" = c( 6, 8, 8, 10, 10, 6 )
+  "cp" = c(-0.77493),
+  "minsplit" = c(936),
+  "minbucket" = c(467),
+  "maxdepth" = c(20)
 )
 
 # parametros  arbol
@@ -47,6 +47,7 @@ setwd("~/buckets/b1/") # Establezco el Working Directory
 # cargo MI semilla, que esta en MI bucket
 tabla_semillas <- fread( "./datasets//mis_semillas.txt" )
 ksemilla_azar <- tabla_semillas[ 1, semilla ]  # 1 es mi primer semilla
+print(ksemilla_azar)
 
 # cargo los datos
 dataset <- fread("./datasets/dataset_pequeno.csv")
@@ -82,7 +83,7 @@ gc()
 campos_buenos <- copy(setdiff(colnames(dtrain), c("clase_ternaria")))
 
 
-
+inicio <- Sys.time()
 # Genero las salidas
 for( icorrida in seq(nrow(PARAM$corridas)) ){
 
@@ -170,6 +171,9 @@ for( icorrida in seq(nrow(PARAM$corridas)) ){
     cat(arbolito, " ")
   }
 }
+final <- Sys.time()
+tiempo_demora <- final-inicio
+tiempo_demora
 
 # Bajo de Kaggle la ganancia de los ultimos 50 submits 
 l1 <- "#!/bin/bash\n"
