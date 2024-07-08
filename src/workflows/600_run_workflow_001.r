@@ -6,6 +6,9 @@ PARAM <- "src/workflows/617_workflow_base_f202107_idea1.r"
 #PARAM <- "src/workflows/617_workflow_base_f202107_idea3.r"
 #PARAM <- "src/workflows/617_workflow_base_f202107_idea4.r"
 #PARAM <- "src/workflows/617_workflow_base_f202107_idea5.r"
+#PARAM <- "src/workflows/617_workflow_base_f202107_idea6.r"
+#PARAM <- "src/workflows/617_workflow_base_f202107_idea7.r"
+#PARAM <- "src/workflows/617_workflow_base_f202107_idea8.r"
 
 
 envg <- env()
