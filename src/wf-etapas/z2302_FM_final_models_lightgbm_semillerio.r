@@ -47,15 +47,16 @@ grabar_importancia <- function(modelo_final, modelo_rank, iteracion_bayesiana) {
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Aqui empieza el programa
-cat( "z2301_FM_final_models_lightgbm.r  START\n")
+cat( "z2302_FM_final_models_lightgbm_semillerio.r  START\n")
 action_inicializar() 
 
 # genero las semillas con las que voy a trabajar
 #  ninguna de ellas es exactamente la original del alumno
 primos <- generate_primes(min = 100000, max = 1000000)
 set.seed(envg$PARAM$semilla)
+total_semillas <- envg$PARAM$semillerio * envg$PARAM$repeticiones_exp
 # me quedo con PARAM$semillerio  primos al azar
-envg$PARAM$semillas <- sample(primos)[1:envg$PARAM$qsemillas]
+envg$PARAM$semillas <- sample(primos)[1:total_semillas]
 
 
 GrabarOutput()
@@ -93,6 +94,7 @@ if( file.exists( "tb_modelos.txt" ) ){
   tb_modelos <- data.table( 
     rank= integer(),
     iteracion_bayesiana= integer(),
+    repeticion= integer(),
     semilla= integer(),
     isem= integer(),
     archivo= character() )
@@ -134,75 +136,94 @@ for (modelo_rank in envg$PARAM$modelos_rank) {
   parametros$metrica <- NULL
   parametros$iteracion_bayesiana <- NULL
 
+  # recalculo min_data_in_leaf  y  num_leaves  para ajustarlo al nuevo dataset  dtrain
+  if( "leaf_size_log"  %in% names(parametros ) )
+  {
+    # primero defino el tamaño de las hojas
+    parametros$min_data_in_leaf <- pmax( 1,  round( nrow(dtrain) * ( 2.0 ^ parametros$leaf_size_log ))  )
+    # luego la cantidad de hojas en funcion del valor anterior, el coverage, y la cantidad de registros
+    parametros$num_leaves <- pmin( 131072, 
+     pmax( 2,  round( ((2.0^parametros$coverage_log)) * nrow( dtrain ) / parametros$min_data_in_leaf ) ) )
+  }
+
   #  parametros$num_iterations  <- 10  # esta linea es solo para pruebas
 
-  sem <- 0L
-
-  for (vsemilla in envg$PARAM$semillas)
+  for( irepeticion in 1:envg$PARAM$repeticiones_exp )
   {
-    sem <- sem + 1L
-    cat(sem, " ")
-    envg$OUTPUT$status$sem <- sem
-    GrabarOutput()
+    desde <- envg$PARAM$semillerio * (irepeticion -1 ) + 1
+    hasta <- desde + envg$PARAM$semillerio -1
 
-    # Utilizo la semilla definida en este script
-    parametros$seed <- vsemilla
+    sem <- 0L
 
-    nombre_raiz <- paste0(
-      sprintf("%02d", modelo_rank),
-      "_",
-      sprintf("%03d", iteracion_bayesiana),
-      "_s",
-      parametros$seed
-    )
-
-    arch_modelo <- paste0(
-      "modelo_",
-      nombre_raiz,
-      ".model"
-    )
-
-    # genero el modelo entrenando en los datos finales
-    #  en caso que ya no exista
-    if( !file.exists( arch_modelo ) )
+    for (vsemilla in envg$PARAM$semillas[desde:hasta] )
     {
-      cat( "\nentrenando modelo = ", sem, "  ." )
-      set.seed(parametros$seed, kind = "L'Ecuyer-CMRG")
-      modelo_final <- lightgbm(
-        data = dtrain,
-        param = parametros,
-        verbose = -100
-      )
-      cat( " ...Fin." )
+      sem <- sem + 1L
+      cat(sem, " ")
+      envg$OUTPUT$status$sem <- sem
+      GrabarOutput()
 
-      # grabo el modelo, achivo .model
-      lgb.save(modelo_final,
-        file = arch_modelo
+      # Utilizo la semilla definida en este script
+      parametros$seed <- vsemilla
+
+      nombre_raiz <- paste0(
+        sprintf("%02d", modelo_rank),
+        "_",
+        sprintf("%03d", irepeticion),
+        "_",
+        sprintf("%03d", iteracion_bayesiana),
+        "_s",
+        parametros$seed
       )
 
-      # creo y grabo la importancia de variables, solo para la primer semilla
-      if (sem == 1) {
-        cat(format(Sys.time(), "%Y%m%d %H%M%S"), "\n",
-            file = "z-Rcanresume.txt",
-            append = TRUE
+      arch_modelo <- paste0(
+        "modelo_",
+        nombre_raiz,
+        ".model"
+      )
+
+      # genero el modelo entrenando en los datos finales
+      #  en caso que ya no exista
+      if( !file.exists( arch_modelo ) )
+      {
+        cat( "\nentrenando modelo = ", sem, "  ." )
+        set.seed(parametros$seed, kind = "L'Ecuyer-CMRG")
+        modelo_final <- lightgbm(
+          data = dtrain,
+          param = parametros,
+          verbose = -100
+        )
+        cat( " ...Fin." )
+
+        # grabo el modelo, achivo .model
+        lgb.save(modelo_final,
+          file = arch_modelo
         )
 
-        grabar_importancia(modelo_final, modelo_rank, iteracion_bayesiana)
+        # creo y grabo la importancia de variables, solo para la primer semilla
+        if (sem == 1) {
+          cat(format(Sys.time(), "%Y%m%d %H%M%S"), "\n",
+              file = "z-Rcanresume.txt",
+              append = TRUE
+          )
+
+          grabar_importancia(modelo_final, modelo_rank, iteracion_bayesiana)
+        }
+
+        # Agrego a tb_semillas
+        tb_modelos <- rbind( tb_modelos,
+           list(modelo_rank,
+                iteracion_bayesiana,
+                irepeticion,
+                vsemilla,
+                sem,
+               arch_modelo
+               ))
+
+        fwrite( tb_modelos,
+                file = "tb_modelos.txt",
+                sep ="\t"
+              )
       }
-
-      # Agrego a tb_semillas
-      tb_modelos <- rbind( tb_modelos,
-         list(modelo_rank,
-              iteracion_bayesiana,
-              vsemilla,
-              sem,
-              arch_modelo
-             ))
-
-      fwrite( tb_modelos,
-              file = "tb_modelos.txt",
-              sep ="\t"
-            )
     }
   }
 }
@@ -224,4 +245,4 @@ GrabarOutput()
 #  archivos tiene a los files que debo verificar existen para no abortar
 
 action_finalizar( archivos = c()) 
-cat( "z2301_FM_final_models_lightgbm.r  END\n")
+cat( "z2302_FM_final_models_lightgbm_semillerio.r  END\n")
