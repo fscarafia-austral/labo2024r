@@ -181,14 +181,14 @@ FErf_attributes_base <- function( pinputexps, ratio, desvio)
 
   # Parametros de un LightGBM que se genera para estimar la column importance
   param_local$train$clase01_valor1 <- c( "BAJA+2", "BAJA+1")
-  param_local$train$training <- c( 202101, 202102, 202103)
+  param_local$train$training <- c( 202012, 202101, 202102, 202103)
 
   # parametros para que LightGBM se comporte como Random Forest
   param_local$lgb_param <- list(
     # parametros que se pueden cambiar
-    num_iterations = 40,
-    num_leaves  = 32,
-    min_data_in_leaf = 1000,
+    num_iterations = 50,
+    num_leaves  = 40,
+    min_data_in_leaf = 400,
     feature_fraction_bynode  = 0.2,
 
     # para que LightGBM emule Random Forest

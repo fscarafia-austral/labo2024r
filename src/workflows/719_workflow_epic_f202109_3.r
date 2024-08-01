@@ -309,7 +309,7 @@ HT_tuning_epic <- function( pinputexps, bypass=FALSE)
   param_local$train$gan0 <-  -3000
   param_local$train$meseta <- 2001
   param_local$train$repeticiones_exp <- 1
-  param_local$train$semillerio <- 1  # 1 es no usar semillerio en la Bayesian Optimi
+  param_local$train$semillerio <- 0  # 1 es no usar semillerio en la Bayesian Optimi
 
   # Hiperparametros  del LightGBM
   #  los que tienen un solo valor son los que van fijos
