@@ -5,6 +5,10 @@ require("rlang")
 PARAM <- "src/workflows/719_workflow_epic_f202109_1.r"
 PARAM <- "src/workflows/719_workflow_epic_f202109_2.r"
 PARAM <- "src/workflows/719_workflow_epic_f202109_3.r"
+PARAM <- "src/workflows/719_workflow_epic_f202109_4.r"
+PARAM <- "src/workflows/719_workflow_epic_f202109_5.r"
+PARAM <- "src/workflows/719_workflow_epic_f202109_6.r"
+PARAM <- "src/workflows/719_workflow_epic_f202109_7.r"
 
 envg <- env()
 
